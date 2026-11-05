@@ -15,7 +15,11 @@ jobs:
         run: npm install
       - name: Check JavaScript syntax
         run: |
-          find . -type f \( -name '*.js' -o -name '*.cjs' -o -name '*.mjs' \) -not -path './node_modules/*' -not -path './.git/*' -print0 | xargs -0 -n1 node --check
+          set -o pipefail
+          find . -type f \( -name '*.js' -o -name '*.cjs' -o -name '*.mjs' \) -not -path './node_modules/*' -not -path './.git/*' -print0 | while IFS= read -r -d '' file; do
+            echo "Checking $file"
+            node --check "$file" || exit 1
+          done
       - name: Run test suite
         run: npm test
       - name: Validate HTML structure
