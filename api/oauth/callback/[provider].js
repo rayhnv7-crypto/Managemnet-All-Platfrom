@@ -21,7 +21,7 @@ export default async function handler(req,res){
   const data=await response.json().catch(()=>({}));
   const access=data.access_token||data.data?.access_token;
   if(!response.ok||!access)return send(res,502,{error:'Pertukaran token gagal',provider:id,message:data.error_description||data.message||'Periksa konfigurasi provider'});
-  await db('connections',{method:'POST',body:{provider:id,status:'Connected',account_label:'Authorized account',token_encrypted:encrypt(data),connected_at:new Date().toISOString()},prefer:'return=minimal'});
+  await db('connections',{method:'POST',body:{provider:id,status:'Connected',account_label:'Authorized account',token_encrypted:encrypt(data),connected_at:new Date().toISOString()},prefer:'return=minimal,resolution=merge-duplicates'});
   await db('activity_logs',{method:'POST',body:{event:'OAuth connected',detail:id,level:'info'},prefer:'return=minimal'});
   return res.redirect(302,'/?oauth=connected&provider='+encodeURIComponent(id));
  }catch(e){return send(res,503,{error:'OAuth callback gagal diproses'})}
