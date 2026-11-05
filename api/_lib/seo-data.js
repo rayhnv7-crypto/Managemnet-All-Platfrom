@@ -1,10 +1,10 @@
-import { send } from './http.js';
+import { send, safeEqual } from './http.js';
 import { createClient } from '@supabase/supabase-js';
 import { crawlSite, auditCrawl } from '../seo/_lib/crawler.js';
 const tables={sites:'seo_sites',pages:'seo_pages',keywords:'seo_keywords',competitors:'seo_competitors',articles:'seo_articles',audits:'seo_audits',rank:'seo_rank_history'};
 export default async function handler(req,res){
  if(!['GET','POST','PATCH','DELETE'].includes(req.method)){res.setHeader('Allow','GET,POST,PATCH,DELETE');return send(res,405,{error:'Method not allowed'});}
- const secret=process.env.CLIPPER_ADMIN_SECRET;if(!secret||req.headers['x-clipper-secret']!==secret)return send(res,401,{error:'Unauthorized'});
+ const secret=process.env.CLIPPER_ADMIN_SECRET;if(!secret||!safeEqual(req.headers['x-clipper-secret']||'',secret))return send(res,401,{error:'Unauthorized'});
  if(!process.env.SUPABASE_URL||!process.env.SUPABASE_SERVICE_ROLE_KEY)return send(res,503,{error:'Supabase belum dikonfigurasi'});
  const kind=String(req.query?.kind||req.body?.kind||''),table=tables[kind],id=req.query?.id||req.body?.id;const db=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY);
  try{if(kind==='crawl'){if(req.method==='GET'){let q=db.from('seo_crawl_runs').select('*').order('created_at',{ascending:false}).limit(30);if(req.query?.site_id)q=q.eq('site_id',req.query.site_id);const {data,error}=await q;if(error)throw error;return send(res,200,{ok:true,data});}
