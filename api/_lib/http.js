@@ -1,0 +1,4 @@
+import crypto from 'node:crypto';
+export function send(res,status,body){res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');return res.status(status).json(body)}
+export function encrypt(value){const key=process.env.TOKEN_ENCRYPTION_KEY||'';if(!/^[a-f0-9]{64}$/i.test(key))throw new Error('TOKEN_ENCRYPTION_KEY harus 64 karakter hex.');const iv=crypto.randomBytes(12),cipher=crypto.createCipheriv('aes-256-gcm',Buffer.from(key,'hex'),iv),data=Buffer.concat([cipher.update(JSON.stringify(value),'utf8'),cipher.final()]);return {v:1,iv:iv.toString('hex'),tag:cipher.getAuthTag().toString('hex'),data:data.toString('hex')}}
+export function safeEqual(a,b){if(!a||!b)return false;const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&crypto.timingSafeEqual(x,y)}

@@ -1,0 +1,9 @@
+GITHUB UPLOAD
+
+1. Extract this ZIP on your computer.
+2. Open the extracted Management-clipper-hub folder.
+3. Select the CONTENTS of the folder (index.html, server.js, package.json, .env.example, .gitignore, README.md, and data folder), not the outer folder itself.
+4. Drag those files into GitHub's Upload files page.
+5. Commit directly to main.
+
+Do NOT upload a real .env file, credentials, tokens, or data/store.json.

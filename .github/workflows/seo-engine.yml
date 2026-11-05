@@ -1,0 +1,18 @@
+name: SEO Engine Checks
+on:
+  push:
+    branches: [seo-engineering-night]
+  pull_request:
+    branches: [main, seo-engineering-night]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check all API modules
+        run: find api -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: SEO engine tests
+        run: node --test tests/*.test.mjs

@@ -1,0 +1,30 @@
+name: CLIPPER HUB checks
+on:
+  pull_request:
+  push:
+    branches: [main, fix/clipper-hub-structure]
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check API JavaScript syntax
+        run: |
+          find api -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Run API validation regression tests
+        run: node --test tests/*.test.mjs
+      - name: Validate HTML script boundaries
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const html = fs.readFileSync('index.html','utf8');
+          const opens = html.split('<script').length - 1;
+          const closes = html.split('</script>').length - 1;
+          if (opens !== closes) throw new Error(`script tags mismatch: ${opens}/${closes}`);
+          if (!html.includes('function render()')) throw new Error('render() missing');
+          if (!html.includes('function loadProviderState')) throw new Error('provider state loader missing');
+          console.log('HTML structural checks passed');
+          NODE

@@ -1,0 +1,14 @@
+{
+ "version":2,"framework":null,"cleanUrls":true,
+ "crons":[{"path":"/api/seo-handler?action=worker","schedule":"0 3 * * *"}],
+ "rewrites":[
+  {"source":"/api/providers","destination":"/api/health?mode=providers"},
+  {"source":"/api/seo/data","destination":"/api/seo-handler?action=data"},
+  {"source":"/api/seo/ai","destination":"/api/seo-handler?action=ai"},
+  {"source":"/api/seo/queue","destination":"/api/seo-handler?action=queue"},
+  {"source":"/api/seo/google","destination":"/api/seo-handler?action=google&google_action=$query.action"},
+  {"source":"/api/seo/worker","destination":"/api/seo-handler?action=worker"},
+  {"source":"/(.*)","destination":"/index.html"}
+ ],
+ "headers":[{"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"},{"key":"X-Frame-Options","value":"DENY"}]}]
+}

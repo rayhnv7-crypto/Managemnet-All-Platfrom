@@ -1,0 +1,3 @@
+const base=()=>{const u=process.env.SUPABASE_URL,k=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!u||!k)throw new Error('Supabase belum dikonfigurasi. Isi SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY di Vercel Environment Variables.');return {u:u.replace(/\/$/,''),k}};
+export async function db(path,{method='GET',body,prefer}={}){const {u,k}=base();const r=await fetch(`${u}/rest/v1/${path}`,{method,headers:{apikey:k,Authorization:`Bearer ${k}`,'Content-Type':'application/json',...(prefer?{Prefer:prefer}:{})},...(body!==undefined?{body:JSON.stringify(body)}:{})});const t=await r.text();if(!r.ok)throw new Error(`Supabase ${r.status}: ${t.slice(0,400)}`);return t?JSON.parse(t):null}
+export function ready(){return !!(process.env.SUPABASE_URL&&process.env.SUPABASE_SERVICE_ROLE_KEY)}

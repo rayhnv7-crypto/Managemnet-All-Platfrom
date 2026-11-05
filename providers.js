@@ -1,0 +1,8 @@
+export const providers={
+ tiktok:{label:'TikTok',client:()=>process.env.TIKTOK_CLIENT_KEY,secret:()=>process.env.TIKTOK_CLIENT_SECRET,authorize:'https://www.tiktok.com/v2/auth/authorize/',token:'https://open.tiktokapis.com/v2/oauth/token/',scopes:'user.info.basic,video.list',clientParam:'client_key'},
+ meta:{label:'Meta / Instagram / Facebook / Ads',client:()=>process.env.META_APP_ID,secret:()=>process.env.META_APP_SECRET,authorize:'https://www.facebook.com/v23.0/dialog/oauth',token:'https://graph.facebook.com/v23.0/oauth/access_token',scopes:'public_profile,pages_show_list,instagram_basic,instagram_manage_insights,ads_read'},
+ google:{label:'Google / YouTube / Analytics',client:()=>process.env.GOOGLE_CLIENT_ID,secret:()=>process.env.GOOGLE_CLIENT_SECRET,authorize:'https://accounts.google.com/o/oauth2/v2/auth',token:'https://oauth2.googleapis.com/token',scopes:'openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/analytics.readonly'},
+ linkedin:{label:'LinkedIn',client:()=>process.env.LINKEDIN_CLIENT_ID,secret:()=>process.env.LINKEDIN_CLIENT_SECRET,authorize:'https://www.linkedin.com/oauth/v2/authorization',token:'https://www.linkedin.com/oauth/v2/accessToken',scopes:'openid profile w_member_social'},
+ x:{label:'X',client:()=>process.env.X_CLIENT_ID,secret:()=>process.env.X_CLIENT_SECRET,authorize:'https://twitter.com/i/oauth2/authorize',token:'https://api.twitter.com/2/oauth2/token',scopes:'tweet.read users.read offline.access'}
+};
+export const redirectUri=(req,id)=>`${(process.env.OAUTH_REDIRECT_BASE||`https://${req.headers.host}`).replace(/\/$/,'')}/api/oauth/callback/${id}`;
