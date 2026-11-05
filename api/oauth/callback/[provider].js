@@ -7,16 +7,18 @@ export default async function handler(req,res){
  const id=req.query.provider,p=providers[id],state=String(req.query.state||''),code=String(req.query.code||'');
  if(!p||!state)return send(res,400,{error:'OAuth callback tidak lengkap'});
  try{
-  // Consume state atomically so a callback cannot be replayed concurrently.
-  const consumed=await db(`oauth_states?state=eq.${encodeURIComponent(state)}&provider=eq.${encodeURIComponent(id)}&select=state,expires_at`,{method:'DELETE',prefer:'return=representation'});
+  // Consume state atomically so callbacks cannot be replayed concurrently.
+  const consumed=await db(`oauth_states?state=eq.${encodeURIComponent(state)}&provider=eq.${encodeURIComponent(id)}&select=state,expires_at,code_verifier`,{method:'DELETE',prefer:'return=representation'});
   const st=consumed?.[0];
   if(!st||new Date(st.expires_at)<=new Date())return send(res,400,{error:'OAuth state tidak valid, kedaluwarsa, atau sudah digunakan'});
   if(req.query.error)return send(res,400,{error:'Akses OAuth ditolak oleh pengguna'});
   if(!code)return send(res,400,{error:'Authorization code tidak diterima'});
+  if(id==='x'&&!st.code_verifier)return send(res,400,{error:'OAuth PKCE verifier tidak tersedia; ulangi koneksi X'});
   if(!p.client()||!p.secret())return send(res,503,{error:'OAuth provider belum dikonfigurasi'});
   const form=new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:redirectUri(req,id)});
   if(id==='tiktok'){form.set('client_key',p.client());form.set('client_secret',p.secret())}
   else{form.set('client_id',p.client());form.set('client_secret',p.secret())}
+  if(id==='x')form.set('code_verifier',st.code_verifier);
   const response=await fetch(p.token,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form});
   const data=await response.json().catch(()=>({}));
   const access=data.access_token||data.data?.access_token;
