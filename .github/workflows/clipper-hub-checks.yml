@@ -2,21 +2,23 @@ name: CLIPPER HUB checks
 on:
   pull_request:
   push:
-    branches: [main, fix/clipper-hub-structure]
+    branches: [main]
 jobs:
-  syntax:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Check API JavaScript syntax
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Check JavaScript syntax
         run: |
-          find api -type f -name '*.js' -print0 | xargs -0 -n1 node --check
-      - name: Run API validation regression tests
-        run: node --test tests/*.test.mjs
-      - name: Validate HTML script boundaries
+          find . -type f \( -name '*.js' -o -name '*.cjs' -o -name '*.mjs' \) -not -path './node_modules/*' -not -path './.git/*' -print0 | xargs -0 -n1 node --check
+      - name: Run test suite
+        run: npm test
+      - name: Validate HTML structure
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
