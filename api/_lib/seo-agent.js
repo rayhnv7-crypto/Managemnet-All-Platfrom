@@ -1,4 +1,4 @@
-import {send} from './http.js';
+import {send,safeEqual} from './http.js';
 import ai from './seo-ai.js';
 import data from './seo-data.js';
 import worker from './seo-worker.js';
@@ -10,7 +10,7 @@ import worker from './seo-worker.js';
  */
 export default async function handler(req,res){
  if(req.method!=='POST'){res.setHeader('Allow','POST');return send(res,405,{error:'Method not allowed'});}
- if(!process.env.CLIPPER_ADMIN_SECRET||req.headers['x-clipper-secret']!==process.env.CLIPPER_ADMIN_SECRET)return send(res,401,{error:'Unauthorized. Owner only.'});
+ if(!process.env.CLIPPER_ADMIN_SECRET||!safeEqual(req.headers['x-clipper-secret']||'',process.env.CLIPPER_ADMIN_SECRET))return send(res,401,{error:'Unauthorized. Owner only.'});
  const body=req.body||{}, task=String(body.task||'audit').trim(),site=String(body.site||'').trim();
  const allowed=['audit','analyze','plan','content_brief','monitor'];
  if(!allowed.includes(task))return send(res,400,{error:'Task invalid',allowed});
