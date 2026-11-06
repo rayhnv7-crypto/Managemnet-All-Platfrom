@@ -3,6 +3,16 @@ import {send,encrypt} from './_lib/http.js';
 import {db} from './_lib/supabase.js';
 import {providers,redirectUri} from './_lib/providers.js';
 
+async function saveConnection(provider,token){
+ const rows=await db(`connections?provider=eq.${encodeURIComponent(provider)}&select=id&limit=1`);
+ const payload={provider,status:'Connected',account_label:'Authorized account',token_encrypted:encrypt(token),connected_at:new Date().toISOString()};
+ if(rows?.[0]?.id){
+  await db(`connections?id=eq.${encodeURIComponent(rows[0].id)}`,{method:'PATCH',body:payload,prefer:'return=minimal'});
+ }else{
+  await db('connections',{method:'POST',body:payload,prefer:'return=minimal'});
+ }
+}
+
 export default async function handler(req,res){
  const action=String(req.query.action||''),id=String(req.query.provider||''),p=providers[id];
  if(!p)return send(res,404,{error:'Provider tidak didukung'});
@@ -38,7 +48,7 @@ export default async function handler(req,res){
    const response=await fetch(p.token,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form});
    const data=await response.json().catch(()=>({})),access=data.access_token||data.data?.access_token;
    if(!response.ok||!access)return send(res,502,{error:'Pertukaran token gagal',provider:id,message:data.error_description||data.message||'Periksa konfigurasi provider'});
-   await db('connections',{method:'POST',body:{provider:id,status:'Connected',account_label:'Authorized account',token_encrypted:encrypt(data),connected_at:new Date().toISOString()},prefer:'return=minimal,resolution=merge-duplicates'});
+   await saveConnection(id,data);
    await db('activity_logs',{method:'POST',body:{event:'OAuth connected',detail:id,level:'info'},prefer:'return=minimal'});
    return res.redirect(302,'/?oauth=connected&provider='+encodeURIComponent(id));
   }catch{return send(res,503,{error:'OAuth callback gagal diproses'})}
